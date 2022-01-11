@@ -12,7 +12,6 @@ import {
 } from 'tsoa'
 import {
   GetItemsResponse,
-  Item,
   InventoryResponse,
   ItemBody,
 } from './inventory.model'

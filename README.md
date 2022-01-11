@@ -2,7 +2,7 @@
 
 ## Setup
 
-- Install
+- Install dependencies
 
 ```sh
 yarn
@@ -14,18 +14,4 @@ yarn
 yarn dev
 ```
 
-- Swagger documentation endpoint `docs/` for swagger ui with playground
-
-## Test solution endpoint
-
-1. In one terminal run
-
-```sh
-yarn dev
-```
-
-2. In another terminal run
-
-```sh
-node scripts/client.js
-```
+- Swagger documentation endpoint `docs/` for swagger ui with playground and API documentation

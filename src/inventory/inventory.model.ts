@@ -1,16 +1,12 @@
 import { Document, Model, model, Schema } from 'mongoose'
 
-interface Item extends Document {
-  name: string
-  description: string
-  quantity: number
-}
-
 interface ItemBody {
   name: string
   description: string
   quantity: number
 }
+
+interface Item extends Document, ItemBody {}
 
 const itemSchema = new Schema<Item>(
   {

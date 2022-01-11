@@ -9,7 +9,7 @@ import {
 
 export class InventoryService {
   /**
-   * Get all Items in Inventory
+   * Get all Items in Inventory and returns
    * @returns Items in Inventory
    */
   async getItems(): Promise<GetItemsResponse> {
@@ -32,10 +32,8 @@ export class InventoryService {
    */
   async create(itemBody: ItemBody): Promise<InventoryResponse> {
     try {
-      // create item
       const item = await Inventory.create(itemBody)
 
-      // return item with id
       return {
         success: true,
         item,
@@ -53,59 +51,72 @@ export class InventoryService {
    *          returns success false with a message
    */
   async delete(itemId: string): Promise<InventoryResponse> {
-    try {
-      const item = await Inventory.findById(itemId)
-
-      // if item exists, delete it
-      if (item) {
-        await item.deleteOne()
-        return {
-          success: true,
-          item,
-        }
-      }
-
-      // else, return that item does not exist
-      return {
-        success: false,
-        message: 'Item ID does not exist in Inventory',
-      }
-    } catch (e) {
-      return this.handleError('delete', e, { itemId })
-    }
+    const deleteItem = async (item: Item) => item.deleteOne()
+    return this.findByIdAndPerformAction(
+      'delete',
+      { itemId },
+      itemId,
+      deleteItem
+    )
   }
 
   /**
-   * Edits a single document with its corresponding new Item body
+   * Edit a single document by ID if present
    * @param itemId ID of Item being updated
    * @param itemBody Contents of new Item
    * @returns success true if updating succeeded and old item, else, false with
    *          error message
    */
   async edit(itemId: string, itemBody: ItemBody): Promise<InventoryResponse> {
+    const updateItem = async (item: Item) => item.updateOne(itemBody)
+    return this.findByIdAndPerformAction(
+      'edit',
+      { itemId, itemBody },
+      itemId,
+      updateItem
+    )
+  }
+
+  /**
+   * Helper method to enforce DRY for all methods that require
+   * looking up by ID
+   * @param itemId ID of Item to find in Inventory
+   * @param payload payload of the method from the controller
+   * @param action callback function to be performed on item
+   * @returns InventoryResponse after function is performed or
+   *          success set to false if item not found
+   */
+  private async findByIdAndPerformAction(
+    methodName: string,
+    payload: any,
+    itemId: string,
+    action: (item: Item) => Promise<any>
+  ): Promise<InventoryResponse> {
     try {
       const item = await Inventory.findById(itemId)
 
+      // if item is present
       if (item) {
-        await item.updateOne(itemBody)
+        await action(item)
         return {
           success: true,
           item,
         }
       }
 
+      // if item is not present, send error message
       return {
         success: false,
         message: 'Item ID does not exist in Inventory',
       }
     } catch (e) {
-      return this.handleError('edit', e, { itemId, itemBody })
+      return this.handleError(methodName, e, payload)
     }
   }
 
   /**
-   * Handles unknown error type by either returning error message
-   * if error is of Error type, else sending an unknown error
+   * Helper method that handles unknown error type by either returning
+   * error message if error is of Error type, else sending an unknown error
    * @param e unknown error
    * @returns InventoryResponse
    */
