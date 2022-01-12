@@ -1,10 +1,12 @@
 import { Logger } from '../utils/logger'
 import {
+  DeleteEvents,
+  GetDeleteEventsResponse,
   GetItemsResponse,
   Inventory,
   InventoryResponse,
+  IItem,
   Item,
-  ItemBody,
 } from './inventory.model'
 
 export class InventoryService {
@@ -14,7 +16,7 @@ export class InventoryService {
    */
   async getItems(): Promise<GetItemsResponse> {
     try {
-      const items = await Inventory.find()
+      const items = await Inventory.find({ deleted: false })
       return {
         success: true,
         items,
@@ -30,7 +32,7 @@ export class InventoryService {
    * @returns response of success boolean with message on failure,
    *          else, item id on successful creation of document
    */
-  async create(itemBody: ItemBody): Promise<InventoryResponse> {
+  async create(itemBody: Item): Promise<InventoryResponse> {
     try {
       const item = await Inventory.create(itemBody)
 
@@ -50,14 +52,18 @@ export class InventoryService {
    * @returns success true if item is present and deleted, else
    *          returns success false with a message
    */
-  async delete(itemId: string): Promise<InventoryResponse> {
-    const deleteItem = async (item: Item) => item.deleteOne()
-    return this.findByIdAndPerformAction(
-      'delete',
-      { itemId },
+  async delete(
+    itemId: string,
+    deleteReason: string = 'No reason'
+  ): Promise<InventoryResponse> {
+    const deleteItem = async (item: IItem) => {
+      item.deleted = true
+      await item.save()
+      await DeleteEvents.create({ itemId: item._id, reason: deleteReason })
+    }
+    return this.findByIdAndPerformAction('delete', itemId, deleteItem, {
       itemId,
-      deleteItem
-    )
+    })
   }
 
   /**
@@ -67,14 +73,51 @@ export class InventoryService {
    * @returns success true if updating succeeded and old item, else, false with
    *          error message
    */
-  async edit(itemId: string, itemBody: ItemBody): Promise<InventoryResponse> {
-    const updateItem = async (item: Item) => item.updateOne(itemBody)
-    return this.findByIdAndPerformAction(
-      'edit',
-      { itemId, itemBody },
+  async edit(itemId: string, itemBody: Item): Promise<InventoryResponse> {
+    const updateItem = async (item: IItem) => item.updateOne(itemBody)
+    return this.findByIdAndPerformAction('edit', itemId, updateItem, {
       itemId,
-      updateItem
-    )
+      itemBody,
+    })
+  }
+
+  async getDeleteEvents(): Promise<GetDeleteEventsResponse> {
+    try {
+      const events = await DeleteEvents.find()
+
+      return {
+        success: true,
+        events,
+      }
+    } catch (e) {
+      return this.handleError('getItems', e)
+    }
+  }
+
+  async undoDeleteEvent(): Promise<InventoryResponse> {
+    try {
+      const mostRecentDeleteEvent = await DeleteEvents.findOne().sort({
+        $natural: -1,
+      })
+      if (mostRecentDeleteEvent) {
+        const updateDeletedToFalse = async (item: IItem) => {
+          item.deleted = false
+          await item.save()
+          await mostRecentDeleteEvent.deleteOne()
+        }
+        return this.findByIdAndPerformAction(
+          'undoDeleteEvent',
+          mostRecentDeleteEvent.itemId,
+          updateDeletedToFalse
+        )
+      }
+      return {
+        success: false,
+        message: 'There are no deleted events available',
+      }
+    } catch (e) {
+      return this.handleError('undoDeleteEvent', e)
+    }
   }
 
   /**
@@ -88,9 +131,9 @@ export class InventoryService {
    */
   private async findByIdAndPerformAction(
     methodName: string,
-    payload: any,
     itemId: string,
-    action: (item: Item) => Promise<any>
+    action: (item: IItem) => Promise<any>,
+    payload?: any
   ): Promise<InventoryResponse> {
     try {
       const item = await Inventory.findById(itemId)

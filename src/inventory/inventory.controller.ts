@@ -11,9 +11,11 @@ import {
   SuccessResponse,
 } from 'tsoa'
 import {
+  DeleteBody,
+  GetDeleteEventsResponse,
   GetItemsResponse,
   InventoryResponse,
-  ItemBody,
+  Item,
 } from './inventory.model'
 import { InventoryService } from './inventory.service'
 
@@ -33,12 +35,19 @@ export class InventoryController extends Controller {
     return this.inventoryService.getItems()
   }
 
+  @Patch('undo')
+  @SuccessResponse(202, 'Accepted')
+  @Response(400, 'Bad Request')
+  async undo(): Promise<InventoryResponse> {
+    return this.inventoryService.undoDeleteEvent()
+  }
+
   @Patch('{itemId}')
   @SuccessResponse(202, 'Accepted')
   @Response(400, 'Bad Request')
   async edit(
     @Path() itemId: string,
-    @Body() newItemBody: ItemBody
+    @Body() newItemBody: Item
   ): Promise<InventoryResponse> {
     return this.inventoryService.edit(itemId, newItemBody)
   }
@@ -46,14 +55,24 @@ export class InventoryController extends Controller {
   @Post()
   @SuccessResponse(201, 'Created')
   @Response(400, 'Bad Request')
-  async create(@Body() newItemBody: ItemBody): Promise<InventoryResponse> {
+  async create(@Body() newItemBody: Item): Promise<InventoryResponse> {
     return this.inventoryService.create(newItemBody)
   }
 
   @Delete('{itemId}')
   @SuccessResponse(202, 'Accepted')
   @Response(400, 'Bad Request')
-  async delete(@Path() itemId: string): Promise<InventoryResponse> {
-    return this.inventoryService.delete(itemId)
+  async delete(
+    @Path() itemId: string,
+    @Body() deleteBody: DeleteBody
+  ): Promise<InventoryResponse> {
+    return this.inventoryService.delete(itemId, deleteBody?.deleteReason)
+  }
+
+  @Get('deleted')
+  @SuccessResponse(200, 'OK')
+  @Response(400, 'Bad Request')
+  async getDeleteEvents(): Promise<GetDeleteEventsResponse> {
+    return this.inventoryService.getDeleteEvents()
   }
 }

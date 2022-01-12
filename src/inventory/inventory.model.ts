@@ -1,14 +1,15 @@
-import { Document, Model, model, Schema } from 'mongoose'
+import { Document, Model, model, Schema, ObjectId } from 'mongoose'
 
-interface ItemBody {
+export interface Item {
   name: string
   description: string
   quantity: number
+  deleted?: boolean
 }
 
-interface Item extends Document, ItemBody {}
+export interface IItem extends Document, Item {}
 
-const itemSchema = new Schema<Item>(
+const itemSchema = new Schema<IItem>(
   {
     name: {
       type: String,
@@ -22,22 +23,59 @@ const itemSchema = new Schema<Item>(
       type: Number,
       required: true,
     },
+    deleted: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 )
 
-const Inventory: Model<Item> = model('Item', itemSchema)
+export const Inventory: Model<IItem> = model('inventory', itemSchema)
 
-interface GetItemsResponse {
+export interface DeleteEvent {
+  itemId: string
+  reason?: string
+}
+
+export interface IDeleteEvent extends Document, DeleteEvent {}
+
+const deleteEventSchema = new Schema<IDeleteEvent>(
+  {
+    itemId: {
+      type: String,
+      required: true,
+    },
+    reason: {
+      type: String,
+    },
+  },
+  { timestamps: true }
+)
+
+export const DeleteEvents: Model<IDeleteEvent> = model(
+  'delete_events',
+  deleteEventSchema
+)
+
+export interface DeleteBody {
+  deleteReason: string
+}
+
+export interface GetDeleteEventsResponse {
   success: boolean
-  items?: ItemBody[]
+  events?: DeleteEvent[]
   message?: string
 }
 
-interface InventoryResponse {
+export interface GetItemsResponse {
   success: boolean
-  item?: ItemBody
+  items?: Item[]
   message?: string
 }
 
-export { Item, Inventory, InventoryResponse, GetItemsResponse, ItemBody }
+export interface InventoryResponse {
+  success: boolean
+  item?: Item
+  message?: string
+}
