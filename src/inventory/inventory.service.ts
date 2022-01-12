@@ -11,7 +11,8 @@ import {
 
 export class InventoryService {
   /**
-   * Get all Items in Inventory and returns
+   * Get all Items in Inventory where deleted boolean is
+   * set to false, which indicates item is not deleted
    * @returns Items in Inventory
    */
   async getItems(): Promise<GetItemsResponse> {
@@ -46,17 +47,23 @@ export class InventoryService {
   }
 
   /**
-   * Delete an item present in inventory by id if item is present,
-   * else, do nothing
+   * Delete an item present in inventory by setting deleted
+   * boolean to true and creates a delete event
    * @param itemId item id present in inventory
    * @returns success true if item is present and deleted, else
-   *          returns success false with a message
+   *          returns success false with an error message
    */
   async delete(
     itemId: string,
     deleteReason: string = 'No reason'
   ): Promise<InventoryResponse> {
     const deleteItem = async (item: IItem) => {
+      if (item.deleted) {
+        return {
+          success: false,
+          message: 'Item ID has been deleted recently',
+        }
+      }
       item.deleted = true
       await item.save()
       await DeleteEvents.create({ itemId: item._id, reason: deleteReason })
@@ -81,6 +88,10 @@ export class InventoryService {
     })
   }
 
+  /**
+   * Retrieves all delete events recorded in database
+   * @returns All delete events
+   */
   async getDeleteEvents(): Promise<GetDeleteEventsResponse> {
     try {
       const events = await DeleteEvents.find()
@@ -94,6 +105,11 @@ export class InventoryService {
     }
   }
 
+  /**
+   * Retrieves most recent delete event and undo the event
+   * @returns success true if there was an event and event
+   *          was successfully un-deleted
+   */
   async undoDeleteEvent(): Promise<InventoryResponse> {
     try {
       const mostRecentDeleteEvent = await DeleteEvents.findOne().sort({
