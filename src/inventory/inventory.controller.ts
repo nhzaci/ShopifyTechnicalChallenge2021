@@ -72,7 +72,8 @@ export class InventoryController extends Controller {
   }
 
   /**
-   * Delete an item from inventory
+   * Delete an item from inventory, with a deleteReason that can be
+   * specified in request body
    */
   @Delete('{itemId}')
   @SuccessResponse(202, 'Accepted')
