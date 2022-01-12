@@ -7,10 +7,14 @@
 
 ## Heroku Deployment
 
-- Docs: https://shopify-tech-chal-2022-nhzaci.herokuapp.com/
-- Application documentation, built with Swagger UI, is deployed at
+- Application is deployed on Heroku for ease of use
+- [Application documentation](https://shopify-tech-chal-2022-nhzaci.herokuapp.com/docs) built with Swagger UI
 
 ## Running Locally
+
+- Setting up locally consists of two steps,
+  - A. Setting up Database
+  - B. Setting up Express Application
 
 ### A. Setting up Database
 
@@ -19,14 +23,6 @@
 ### B. Setting up Express application
 
 1. Install `nvm` node version manager to install node js and npm, [instructions here](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-- In your terminal: run these two lines:
-
-```bash
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
-export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
-```
 
 2. Install node v15.11.0 with nvm
 
@@ -58,9 +54,17 @@ yarn
 yarn dev
 ```
 
-7. Swagger documentation endpoint `docs/` for swagger ui with playground and API documentation
+7. App docs endpoint `http://localhost:3000/docs/` for Swagger UI playground and API documentation
 
 ## Objectives
+
+- Overall project architecture utilises a component style architecture, where each individual component consists of three parts:
+
+  1. Controller - Controls routing endpoints and which service paths to route API call to
+
+  2. Model - Consists of all the models required for an individual component
+
+  3. Service - Consists of all the business logic and communication with the database
 
 - CRUD operations
 
