@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "concurrently \"nodemon\" \"nodemon -x tsoa spec-and-routes\"",
     "build": "tsoa spec-and-routes && tsc",
-    "start": "tsoa spec-and-routes && tsc && node src/index.js",
+    "start": "node src/index.js",
     "test": "jest"
   },
   "devDependencies": {
