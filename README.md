@@ -2,8 +2,8 @@
 
 - Table of Contents
   - [Heroku Deployment](#heroku-deployment)
-  - [Running Locally](#running-locally)
   - [Objectives & Architecture](#objectives-and-architecture)
+  - [Running Locally](#running-locally)
   - [Schema](#schema)
 
 ## Heroku Deployment
