@@ -38,15 +38,21 @@
 
 - Extra feature chosen:
   - When deleting, allow deletion comments and undeletion
-    - [Undo function](https://github.com/nhzaci/ShopifyTechnicalChallenge2021/blob/4417346533e9d91ea9a30e58547358363b861a6e/src/inventory/inventory.service.ts#L108)
+    - Undo
+      - PATCH to `/inventory/undo-delete` to undo last delete event
+      - [undo function](https://github.com/nhzaci/ShopifyTechnicalChallenge2021/blob/4417346533e9d91ea9a30e58547358363b861a6e/src/inventory/inventory.service.ts#L108)
+    - Getting history
+      - GET to `/inventory/deleted` to get deletion history
+      - [getDeleteEvents function](https://github.com/nhzaci/ShopifyTechnicalChallenge2022/blob/816fec936ac5d346ce6860137ace04ec236eb123/src/inventory/inventory.service.ts#L91)
 
 ### Event-driven Architecture of deletion system
 
-- Each delete is an event inserted into the database
-  - Deletion is simply setting a boolean on Item to true
-  - If document is deleted, it will not be shown when getting all documents
-  - Documents can be cleaned up on a monthly schedule, i.e. cron job to clean up documents which have deleted flag set for over a month
-- Undo is simply getting the most recent delete event, deleting it from the event database and setting deleted boolean of corresponding item with id specified to be false
+- Each delete is an event inserted into the `delete-events` collection
+  - Deletion occurs by setting a `deleted` boolean in an Item to `true`
+    - `GET /inventory/` endpoint queries the database only for documents with `deleted` set to `false`
+    - By setting `deleted` to `true`, these documents will not be retrieved
+  - Documents can be cleaned up on a monthly schedule, i.e. daily cron job to clean up documents which have deleted flag set to `true` for over a month
+- Undo is simply getting the most recent delete event, deleting the event from the `delete-events` collection and setting `deleted` boolean of corresponding item with id specified to be `false`
 
 ## Running Locally
 
