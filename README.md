@@ -3,7 +3,7 @@
 - Table of Contents
   - [Heroku Deployment](#heroku-deployment)
   - [Running Locally](#running-locally)
-  - [Objectives & Architecture](#objectives-&-architecture)
+  - [Objectives & Architecture](#objectives-and-architecture)
 
 ## Heroku Deployment
 
@@ -56,7 +56,7 @@ yarn dev
 
 7. App docs endpoint `http://localhost:3000/docs/` for Swagger UI playground and API documentation
 
-## Objectives & Architecture
+## Objectives and Architecture
 
 - Overall project architecture utilises a component style architecture, where each individual component consists of three parts:
 
